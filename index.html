@@ -170,7 +170,7 @@
                 <!-- Logo / App Title -->
                 <a href="#" class="text-xl sm:text-2xl font-extrabold text-neon-cyan tracking-tight flex items-center">
                     <svg class="w-6 h-6 mr-2 text-neon-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l-2 2M15 19V6l2 2m-8 0h6m-6 4h6m-6 4h6m-6 4v4m0 0h4m-4 0h4M8 20v-4a1 1 0 011-1h4a1 1 0 011 1v4m-4 0h4"></path></svg>
-                    <span class="hidden sm:inline">CC Checker & API Suite</span>
+                    <span class="hidden sm:inline">CC Checker & Tester</span>
                     <span class="inline sm:hidden">CC Checker</span>
                 </a>
 
@@ -197,7 +197,7 @@
     <!-- Main Console Container -->
     <div class="w-full max-w-6xl mt-20 sm:mt-24 bg-card-dark shadow-2xl shadow-neon-sm p-4 md:p-8 space-y-6 sm:space-y-8 border border-neon-cyan/30 rounded-lg">
         <h1 class="text-xl sm:text-4xl font-black text-neon-cyan text-center tracking-wider uppercase">
-            &lt;CC CHECKER INTERFACE&gt;
+            CC CHECKER INTERFACE
         </h1>
         <p class="text-center text-gray-400 text-xs sm:text-sm">
             Execute POST batch analysis with retry logic on the defined API endpoint.
@@ -347,11 +347,7 @@
         
         // Default batch data for reset
         const DEFAULT_BATCH_DATA = 
-            "5154620021171341|05|2029|141\n" +
-            "4000123456789012|10|2024|111\n" +
-            "4567890123456789|08|2026|222\n" +
-            "4242424242424242|12|2030|123\n" +
-            "5555444433332222|01|2028|456";
+            "";
 
         // Global State Flags and Arrays
         let isStopping = false;
