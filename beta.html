@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CC Checker & API Suite</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configure Tailwind for futuristic/dark theme -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Consolas', 'Monaco', 'monospace'],
+                    },
+                    colors: {
+                        'background-dark': '#0f172a', /* slate-900 */
+                        'card-dark': '#1e293b', /* slate-800 */
+                        'neon-cyan': '#22d3ee', /* cyan-400 */
+                        'neon-green': '#a3e635', /* lime-300 for success */
+                        'neon-red': '#f87171', /* red-400 for error */
+                        'neon-yellow': '#fbbf24', /* amber-400 for warning */
+                        'neon-gray': '#94a3b8', /* slate-400 */
+                        'neon-dark-gray': '#334155', /* slate-700 */
+                        'neon-purple': '#a78bfa', /* violet-400 for WIP */
+                    },
+                    boxShadow: {
+                        'neon': '0 0 10px rgba(34, 211, 238, 0.5)',
+                        'neon-sm': '0 0 5px rgba(34, 211, 238, 0.3)',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Load Inter font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* Base Dark Background */
+        body {
+            background-color: #0f172a;
+            color: #f1f5f9; /* slate-100 */
+            min-height: 100vh;
+        }
+        
+        /* Input/Textarea Styling */
+        input[type="text"], input[type="email"], input[type="password"], input[type="number"], textarea {
+            background-color: #1e293b; /* card-dark */
+            color: #e2e8f0; /* slate-200 */
+            border: 1px solid #334155; /* slate-700 */
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        input[type="text"]:focus, textarea[type="text"]:focus {
+            border-color: #22d3ee; /* neon-cyan */
+            outline: none;
+            box-shadow: 0 0 5px rgba(34, 211, 238, 0.7); /* subtle neon glow */
+        }
+
+        /* Input Masking Styles for sensitive data */
+        .masked {
+            -webkit-text-security: disc;
+            text-security: disc;
+        }
+        .unmasked {
+            -webkit-text-security: none;
+            text-security: none;
+        }
+        
+        /* Custom scrollbar for dark theme */
+        textarea::-webkit-scrollbar, .result-body::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        textarea::-webkit-scrollbar-thumb, .result-body::-webkit-scrollbar-thumb {
+            background: #475569; /* slate-600 */
+            border-radius: 4px;
+        }
+        textarea::-webkit-scrollbar-track, .result-body::-webkit-scrollbar-track {
+            background: #1e293b; /* card-dark */
+        }
+        
+        /* Raw Response Styling */
+        .result-body {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: var(--font-mono);
+            min-height: 50px;
+            max-height: 250px;
+            overflow: auto;
+            background-color: #111827; /* dark dark background */
+            border: 1px solid #374151; /* gray-700 */
+        }
+
+        /* Neon Button Styling */
+        #send-button {
+            border: 1px solid #22d3ee;
+            box-shadow: 0 0 8px rgba(34, 211, 238, 0.8);
+            text-shadow: 0 0 3px rgba(34, 211, 238, 0.5);
+        }
+        #send-button:hover {
+            box-shadow: 0 0 15px rgba(34, 211, 238, 1);
+        }
+
+        /* Category Button Active State */
+        .category-button.active {
+            box-shadow: 0 0 10px rgba(34, 211, 238, 0.5); /* Subtle glow on active filter */
+            border-bottom-width: 3px;
+            background-color: rgba(34, 211, 238, 0.1); /* Light background tint */
+        }
+        
+        /* Under Progress Badge Styling */
+        .progress-badge {
+            font-size: 0.75rem;
+            line-height: 1.25rem;
+            padding: 0 0.5rem;
+            border-radius: 9999px;
+            background-color: #7c3aed; /* Violet-600 */
+            color: white;
+            font-weight: 600;
+            margin-left: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        /* Simplified Card Styling */
+        .simple-card-copy-btn {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid currentColor;
+        }
+        
+    </style>
+</head>
+<body class="flex flex-col items-center p-4 sm:p-6 md:p-8 font-sans">
+    
+    <!-- NAVIGATION BAR (Mobile Optimized) -->
+    <header class="fixed top-0 left-0 w-full z-50 bg-gray-900 shadow-xl border-b border-gray-700/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo / App Title -->
+                <a href="#" class="text-xl sm:text-2xl font-extrabold text-neon-cyan tracking-tight flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-neon-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l-2 2M15 19V6l2 2m-8 0h6m-6 4h6m-6 4h6m-6 4v4m0 0h4m-4 0h4M8 20v-4a1 1 0 011-1h4a1 1 0 011 1v4m-4 0h4"></path></svg>
+                    <span class="hidden sm:inline">CC Checker & API Suite</span>
+                    <span class="inline sm:hidden">CC Checker</span>
+                </a>
+
+                <!-- Navigation Links / Buttons -->
+                <nav class="flex items-center space-x-2 sm:space-x-4">
+                    <!-- CC Generator Button (WIP) -->
+                    <button disabled
+                        class="relative flex items-center px-2 sm:px-4 py-1 sm:py-2 text-xs font-medium text-gray-400 bg-gray-700 rounded-lg shadow-inner cursor-not-allowed transition duration-150 ease-in-out">
+                        <span class="hidden sm:inline">CC Generator</span>
+                        <span class="inline sm:hidden">Generator</span>
+                        <span class="progress-badge">WIP</span>
+                    </button>
+                    
+                    <!-- Main CC Checker Link (Active) -->
+                    <a href="#" class="text-background-dark bg-neon-cyan border border-neon-cyan/50 px-2 py-1 sm:px-4 sm:py-2 text-xs font-bold rounded-lg shadow-neon-sm shadow-neon-cyan/80 transition duration-150 ease-in-out">
+                        <span class="hidden sm:inline">CC Checker</span>
+                        <span class="inline sm:hidden">Main</span>
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Console Container -->
+    <div class="w-full max-w-6xl mt-20 sm:mt-24 bg-card-dark shadow-2xl shadow-neon-sm p-4 md:p-8 space-y-6 sm:space-y-8 border border-neon-cyan/30 rounded-lg">
+        <h1 class="text-xl sm:text-4xl font-black text-neon-cyan text-center tracking-wider uppercase">
+            &lt;BATCH CHECKER INTERFACE&gt;
+        </h1>
+        <p class="text-center text-gray-400 text-xs sm:text-sm">
+            Execute POST batch analysis with retry logic on the defined API endpoint.
+        </p>
+
+        <!-- Configuration Panel -->
+        <div class="space-y-4 border-b border-t border-gray-700 py-4 sm:py-6">
+            <!-- Delay Input -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="md:col-span-1">
+                    <label class="block text-sm font-extrabold text-neon-cyan mb-1">ACTIVE REQUEST DELAY (MS)</label>
+                    <div class="flex items-center space-x-2">
+                        <span id="delay-display" class="text-3xl font-black text-neon-yellow">4000</span>
+                        <button 
+                            id="override-button" 
+                            onclick="openDelayOverrideModal()" 
+                            class="text-xs px-2 py-1 bg-neon-dark-gray text-neon-cyan/70 hover:text-neon-cyan hover:bg-neon-dark-gray/80 border border-neon-cyan/30 rounded transition duration-150">
+                            Developer Access
+                        </button>
+                        <button onclick="showDelayInfo()" title="What is the Request Delay?" class="text-neon-gray hover:text-neon-cyan transition duration-150">
+                            <!-- Simple SVG Info Icon -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 002 0v-3a1 1 0 00-2 0z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Batch Input (Masked) -->
+            <div>
+                <label for="data-batch-input" class="block text-sm font-extrabold text-neon-cyan mb-1 flex items-center justify-between">
+                    <span>BATCH DATA INPUT (One string per line - Masked)</span>
+                    <button id="toggle-input-mask" class="text-xs text-neon-yellow/70 hover:text-neon-yellow" onclick="toggleInputMask()">[TOGGLE MASK]</button>
+                </label>
+                <textarea id="data-batch-input" rows="7" class="w-full p-3 transition duration-150 resize-y font-mono text-sm masked" placeholder='Example:&#10;4242424242424242|12|2030|123&#10;5555444433332222|01|2028|456'></textarea>
+            </div>
+
+            <!-- Action Buttons Group (Responsive) -->
+            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                <!-- Send Button -->
+                <button id="send-button" onclick="sendRequest()" class="flex-grow flex items-center justify-center bg-primary-blue/30 text-neon-cyan font-bold py-3 px-4 uppercase tracking-widest transition duration-300 focus:outline-none">
+                    <span id="button-text">INITIATE BATCH SEQUENCE</span>
+                    <div id="loading-spinner" class="hidden ml-4 spinner border-t-2 border-r-2 border-neon-cyan rounded-full w-5 h-5 animate-spin"></div>
+                </button>
+                
+                <!-- Stop Button -->
+                <button id="stop-button" onclick="stopRequest()" disabled class="w-full sm:w-1/4 flex items-center justify-center bg-red-900/30 text-neon-red font-bold py-3 px-4 uppercase tracking-widest transition duration-300 focus:outline-none opacity-50 cursor-not-allowed border border-neon-red">
+                    STOP
+                </button>
+                
+                <!-- Reset Button -->
+                <button id="reset-button" onclick="fullReset()" class="w-full sm:w-1/4 flex items-center justify-center bg-gray-700/30 text-neon-gray font-bold py-3 px-4 uppercase tracking-widest transition duration-300 focus:outline-none border border-neon-gray/50">
+                    RESET
+                </button>
+            </div>
+
+            <!-- Error/Success Message Box for overall errors -->
+            <div id="message-box" class="hidden p-3 text-sm font-bold border rounded mt-3 text-center"></div>
+        </div>
+
+        <!-- Batch Results Display Area -->
+        <div class="mt-4 sm:mt-6 border-t border-gray-700 pt-4 sm:pt-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-neon-cyan mb-4 tracking-wide flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                <span>ANALYSIS RESULTS</span>
+                <!-- Updated: Copy All Live/Dead/Unknown Batch Button (Now performs sorting AND category labeling) -->
+                <button 
+                    id="copy-all-ccs-button" 
+                    onclick="copyAllFilteredCCS()" 
+                    class="mt-2 sm:mt-0 px-3 py-1 bg-neon-cyan/20 text-neon-cyan text-sm font-semibold rounded-lg hover:bg-neon-cyan/30 transition duration-150 border border-neon-cyan/50 w-full sm:w-auto"
+                    title="Copies all Live, Dead, and Unknown CC lines, sorted and labeled by category.">
+                    Copy All Key Categories (Labeled & Sorted)
+                </button>
+            </h2>
+            
+            <!-- Category Dashboard (Responsive Grid: 2 columns on mobile, 5 on desktop) -->
+            <div id="category-summary" class="grid grid-cols-2 md:grid-cols-5 gap-2 sm:gap-4 text-center mb-6 p-4 rounded bg-neon-dark-gray/30">
+                 <!-- Total Counter/All Filter -->
+                <div id="filter-all" onclick="setActiveFilter('all')" class="category-button active border-b-2 border-neon-cyan/80 p-2 sm:p-3 cursor-pointer transition duration-300 flex flex-col items-center justify-between">
+                    <span class="text-xs font-bold text-neon-cyan block">TOTAL PROCESSED</span>
+                    <span id="total-count" class="text-xl sm:text-3xl font-black text-neon-cyan flex-grow flex items-center justify-center">0</span>
+                    <div class="h-[26px]"></div> <!-- Placeholder for alignment -->
+                </div>
+                <!-- Live Counter with Copy Button -->
+                <div id="filter-live" onclick="setActiveFilter('live')" class="category-button border-b-2 border-neon-green/0 hover:border-neon-green/80 p-2 sm:p-3 cursor-pointer transition duration-300 flex flex-col items-center justify-between">
+                    <span class="text-xs font-bold text-neon-green block">LIVE (1)</span>
+                    <span id="live-count" class="text-xl sm:text-3xl font-black text-neon-green flex-grow flex items-center justify-center">0</span>
+                    <!-- New Copy Button -->
+                    <button onclick="event.stopPropagation(); copyCategoryCCS('live')" class="mt-1 px-2 py-0.5 text-xs font-bold text-background-dark bg-neon-green/80 rounded-full hover:bg-neon-green transition duration-150">Copy</button>
+                </div>
+                <!-- Die Counter with Copy Button -->
+                <div id="filter-die" onclick="setActiveFilter('die')" class="category-button border-b-2 border-neon-red/0 hover:border-neon-red/80 p-2 sm:p-3 cursor-pointer transition duration-300 flex flex-col items-center justify-between">
+                    <span class="text-xs font-bold text-neon-red block">DEAD (0)</span>
+                    <span id="die-count" class="text-xl sm:text-3xl font-black text-neon-red flex-grow flex items-center justify-center">0</span>
+                    <!-- New Copy Button -->
+                    <button onclick="event.stopPropagation(); copyCategoryCCS('die')" class="mt-1 px-2 py-0.5 text-xs font-bold text-background-dark bg-neon-red/80 rounded-full hover:bg-neon-red transition duration-150">Copy</button>
+                </div>
+                <!-- Unknown Counter with Copy Button -->
+                <div id="filter-unknown" onclick="setActiveFilter('unknown')" class="category-button border-b-2 border-neon-yellow/0 hover:border-neon-yellow/80 p-2 sm:p-3 cursor-pointer transition duration-300 flex flex-col items-center justify-between">
+                    <span class="text-xs font-bold text-neon-yellow block">UNKNOWN (2)</span>
+                    <span id="unknown-count" class="text-xl sm:text-3xl font-black text-neon-yellow flex-grow flex items-center justify-center">0</span>
+                    <!-- New Copy Button -->
+                    <button onclick="event.stopPropagation(); copyCategoryCCS('unknown')" class="mt-1 px-2 py-0.5 text-xs font-bold text-background-dark bg-neon-yellow/80 rounded-full hover:bg-neon-yellow transition duration-150">Copy</button>
+                </div>
+                <!-- Error Counter -->
+                <div id="filter-error" onclick="setActiveFilter('error')" class="category-button border-b-2 border-neon-gray/0 hover:border-neon-gray/80 p-2 sm:p-3 cursor-pointer transition duration-300 flex flex-col items-center justify-between">
+                    <span class="text-xs font-bold text-neon-gray block">ERRORS</span>
+                    <span id="error-count" class="text-xl sm:text-3xl font-black text-neon-gray flex-grow flex items-center justify-center">0</span>
+                    <div class="h-[26px]"></div> <!-- Placeholder for alignment -->
+                </div>
+            </div>
+            
+            <div id="batch-results-container" class="space-y-4 sm:space-y-6">
+                <p class="text-gray-500 text-sm italic" id="initial-message">System ready. Input data and initiate sequence to begin batch analysis.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="mt-8 mb-4 text-center text-xs text-neon-gray/50 w-full max-w-6xl">
+        &copy; 2024 Advanced Data Interceptor. All rights reserved.
+    </footer>
+
+    <!-- ACCESS CODE MODAL (Delay Override) -->
+    <div id="access-modal" class="modal fixed inset-0 bg-background-dark/90 backdrop-blur-sm z-50 hidden flex items-center justify-center opacity-0 transition-opacity duration-300 p-4">
+        <div class="bg-card-dark p-6 sm:p-8 rounded-lg border border-neon-cyan/50 shadow-neon w-full max-w-sm space-y-4">
+            <h3 class="text-xl font-bold text-neon-cyan">Developer Override Mode</h3>
+            <p class="text-sm text-gray-400">
+                Enter the secret access code to temporarily reduce the delay from 4000ms to 500ms for rapid testing.
+            </p>
+            
+            <input type="text" id="access-code-input" placeholder="Enter Access Code" class="w-full p-3 text-center transition duration-150 uppercase rounded" maxlength="10">
+            
+            <div id="modal-message" class="text-sm text-center font-bold hidden"></div>
+
+            <div class="flex justify-end space-x-3 mt-4">
+                <button onclick="closeDelayOverrideModal()" class="px-4 py-2 bg-gray-600/50 text-gray-300 rounded hover:bg-gray-600 transition">Cancel</button>
+                <button onclick="checkAccessCode()" class="px-4 py-2 bg-neon-cyan text-background-dark font-bold rounded hover:bg-cyan-300 transition">Unlock</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- APP LOGIC -->
+    <script>
+        // Define the secret API endpoint internally - URL HIDDEN FROM UI
+        const API_ENDPOINT = "https://api.chkr.cc/";
+        
+        // Default batch data for reset
+        const DEFAULT_BATCH_DATA = 
+            "5154620021171341|05|2029|141\n" +
+            "4000123456789012|10|2024|111\n" +
+            "4567890123456789|08|2026|222\n" +
+            "4242424242424242|12|2030|123\n" +
+            "5555444433332222|01|2028|456";
+
+        // Global State Flags and Arrays
+        let isStopping = false;
+        let resultsArray = []; // Stores all results
+        let activeFilter = 'all'; // 'all', 'live', 'die', 'unknown', 'error'
+        
+        // --- DELAY CONTROL GLOBALS ---
+        let currentRequestDelay = 4000; // Default delay
+        const DEVELOPER_DELAY = 500;
+        const ACCESS_CODE = 'GEMINI'; // Secret code
+        // ---------------------------------
+        
+        // Category Counters (Synced with DOM IDs)
+        const counts = {
+            all: 0,
+            live: 0,
+            die: 0,
+            unknown: 0,
+            error: 0
+        };
+
+        // DOM Element references
+        const dataBatchInput = document.getElementById('data-batch-input');
+        const sendButton = document.getElementById('send-button');
+        const stopButton = document.getElementById('stop-button');
+        const messageBox = document.getElementById('message-box');
+        const batchResultsContainer = document.getElementById('batch-results-container');
+        const toggleInputMaskButton = document.getElementById('toggle-input-mask');
+        const buttonText = document.getElementById('button-text');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        
+        // --- DELAY MODAL REFERENCES ---
+        const delayDisplay = document.getElementById('delay-display');
+        const overrideButton = document.getElementById('override-button');
+        const accessModal = document.getElementById('access-modal');
+        const accessCodeInput = document.getElementById('access-code-input');
+        const modalMessage = document.getElementById('modal-message');
+        // --------------------------
+
+        // Set initial placeholder data value and initialize display
+        document.addEventListener('DOMContentLoaded', () => {
+            dataBatchInput.value = DEFAULT_BATCH_DATA;
+            setStopButtonState(true);
+            updateCategorySummary(true); // Initialize counters to 0
+            renderResults(); // Show initial message
+            updateDelayDisplay(); // Initial display update
+        });
+        
+        // Helper function to set the state of the STOP button
+        function setStopButtonState(isDisabled) {
+            stopButton.disabled = isDisabled;
+            if (isDisabled) {
+                stopButton.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                stopButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+        
+        // --- DELAY CONTROL LOGIC ---
+        
+        // Function to update the delay display and button
+        function updateDelayDisplay() {
+            delayDisplay.textContent = currentRequestDelay;
+            
+            // Update the button text based on the current delay
+            if (currentRequestDelay === DEVELOPER_DELAY) {
+                overrideButton.textContent = 'Revert to 4000ms';
+                // Change color to indicate 'developer mode is active'
+                overrideButton.classList.remove('text-neon-cyan/70', 'border-neon-cyan/30');
+                overrideButton.classList.add('text-neon-red/80', 'border-neon-red/50');
+            } else {
+                overrideButton.textContent = 'Developer Access';
+                overrideButton.classList.remove('text-neon-red/80', 'border-neon-red/50');
+                overrideButton.classList.add('text-neon-cyan/70', 'border-neon-cyan/30');
+            }
+        }
+        
+        // Function added for the new info button
+        function showDelayInfo() {
+            showMessage('The Request Delay (in milliseconds) throttles requests to prevent API rate-limiting. Use Developer Access for faster testing.', 'info');
+        }
+
+        function openDelayOverrideModal() {
+            if (currentRequestDelay === DEVELOPER_DELAY) {
+                // If already in developer mode, revert immediately
+                currentRequestDelay = 4000;
+                showMessage('Delay successfully reverted to public 4000ms.', 'info');
+                updateDelayDisplay();
+                return;
+            }
+            
+            // Otherwise, open the modal for access code entry
+            accessModal.classList.remove('hidden');
+            // Animate opacity in
+            setTimeout(() => { accessModal.classList.add('opacity-100'); }, 10);
+            accessCodeInput.value = '';
+            modalMessage.classList.add('hidden');
+            modalMessage.classList.remove('text-neon-red');
+            accessCodeInput.focus();
+        }
+
+        function closeDelayOverrideModal() {
+            // Animate opacity out
+            accessModal.classList.remove('opacity-100');
+            setTimeout(() => { accessModal.classList.add('hidden'); }, 300);
+        }
+
+        function checkAccessCode() {
+            const enteredCode = accessCodeInput.value.toUpperCase().trim();
+            
+            if (enteredCode === ACCESS_CODE) {
+                currentRequestDelay = DEVELOPER_DELAY;
+                updateDelayDisplay();
+                showMessage(`ACCESS GRANTED: Request delay set to ${DEVELOPER_DELAY}ms.`, 'success');
+                closeDelayOverrideModal();
+            } else {
+                modalMessage.textContent = 'ACCESS DENIED: Invalid code.';
+                modalMessage.classList.remove('hidden');
+                modalMessage.classList.add('text-neon-red');
+                accessCodeInput.value = '';
+                accessCodeInput.focus();
+            }
+        }
+        // -------------------------------
+        
+
+        // Function to toggle the mask/spoiler for the input textarea
+        function toggleInputMask() {
+            if (dataBatchInput.classList.contains('masked')) {
+                dataBatchInput.classList.remove('masked');
+                dataBatchInput.classList.add('unmasked');
+                toggleInputMaskButton.textContent = '[HIDE MASK]';
+            } else {
+                dataBatchInput.classList.remove('unmasked');
+                dataBatchInput.classList.add('masked');
+                toggleInputMaskButton.textContent = '[TOGGLE MASK]';
+            }
+        }
+
+        // Utility function to display messages
+        function showMessage(message, type = 'success') {
+            messageBox.textContent = message;
+            messageBox.classList.remove('hidden', 'bg-red-900/50', 'text-neon-red', 'bg-neon-green/30', 'text-neon-green', 'bg-neon-cyan/30', 'text-neon-cyan', 'border-neon-cyan', 'border-neon-red', 'border-neon-green');
+            
+            if (type === 'error') {
+                messageBox.classList.add('bg-red-900/50', 'text-neon-red', 'border-neon-red', 'block');
+            } else if (type === 'success') {
+                messageBox.classList.add('bg-green-900/50', 'text-neon-green', 'border-neon-green', 'block');
+            } else if (type === 'info') {
+                messageBox.classList.add('bg-card-dark', 'text-neon-cyan', 'border-neon-cyan', 'block');
+            }
+        }
+        
+        // Utility to reset display elements and counters
+        function resetDisplay() {
+            batchResultsContainer.innerHTML = '';
+            messageBox.classList.add('hidden');
+            resultsArray = [];
+            activeFilter = 'all'; 
+            updateCategorySummary(true); // Reset counters
+            document.getElementById('initial-message')?.remove(); // Remove initial message if it exists
+        }
+
+        // Function to halt the ongoing batch request
+        function stopRequest() {
+            isStopping = true;
+            setStopButtonState(true);
+            buttonText.textContent = 'STOPPING... PLEASE WAIT';
+            loadingSpinner.classList.remove('hidden');
+        }
+
+        // Function to perform a full application reset
+        function fullReset() {
+             if (sendButton.disabled && !stopButton.disabled) {
+                showMessage('SYSTEM ERROR: Cannot reset while a batch sequence is running. Use the STOP button first.', 'error');
+                return;
+            }
+            isStopping = false;
+            resetDisplay();
+            dataBatchInput.value = DEFAULT_BATCH_DATA;
+            setStopButtonState(true);
+            sendButton.disabled = false;
+            buttonText.textContent = 'INITIATE BATCH SEQUENCE';
+            loadingSpinner.classList.add('hidden');
+            showMessage('Checker fully reset. Default batch data reloaded.', 'info');
+            // Re-add initial message if container is empty
+            if (batchResultsContainer.childElementCount === 0) {
+                 batchResultsContainer.innerHTML = '<p class="text-gray-500 text-sm italic" id="initial-message">System ready. Input data and initiate sequence to begin batch analysis.</p>';
+            }
+        }
+        
+        /**
+         * Determines the numerical key (1-4) and the filter category ('live', 'die', 'unknown', 'error').
+         */
+        function determineSortAndFilterKey(structuredData, isError, httpStatus) {
+            let sortKey = 4; // Default to Error
+            let filterKey = 'error';
+
+            // Priority 4: System/HTTP Errors (Lowest Priority)
+            if (isError || (httpStatus !== 'Error' && httpStatus !== 200)) {
+                return { sortKey, filterKey }; 
+            }
+            
+            if (structuredData && typeof structuredData.code === 'number') {
+                if (structuredData.code === 1) { // Priority 1: Live
+                    sortKey = 1; filterKey = 'live';
+                } else if (structuredData.code === 0) { // Priority 2: Die
+                    sortKey = 2; filterKey = 'die';
+                } else if (structuredData.code === 2) { // Priority 3: Unknown
+                    sortKey = 3; filterKey = 'unknown';
+                } else {
+                    // Unexpected API code 
+                    sortKey = 4; filterKey = 'error'; 
+                }
+            }
+
+            return { sortKey, filterKey };
+        }
+        
+        // Function to update the category counts in the dashboard
+        function updateCategorySummary(reset = false) {
+            if (reset) {
+                Object.keys(counts).forEach(key => counts[key] = 0);
+            }
+            
+            // Note: The structure now uses a flex container span around the count 
+            document.getElementById('total-count').textContent = counts.all;
+            document.getElementById('live-count').textContent = counts.live;
+            document.getElementById('die-count').textContent = counts.die;
+            document.getElementById('unknown-count').textContent = counts.unknown;
+            document.getElementById('error-count').textContent = counts.error;
+
+            // Update active filter visual state
+            document.querySelectorAll('.category-button').forEach(btn => {
+                btn.classList.remove('active');
+                // Ensure correct border removal/addition for active state
+                ['border-neon-cyan/80', 'border-neon-green/80', 'border-neon-red/80', 'border-neon-yellow/80', 'border-neon-gray/80'].forEach(cls => btn.classList.remove(cls));
+
+                if (btn.id === `filter-${activeFilter}`) {
+                    btn.classList.add('active');
+                    // Re-add specific active border color
+                    if (activeFilter === 'all') btn.classList.add('border-neon-cyan/80');
+                    if (activeFilter === 'live') btn.classList.add('border-neon-green/80');
+                    if (activeFilter === 'die') btn.classList.add('border-neon-red/80');
+                    if (activeFilter === 'unknown') btn.classList.add('border-neon-yellow/80');
+                    if (activeFilter === 'error') btn.classList.add('border-neon-gray/80');
+                }
+            });
+        }
+
+        // Function to set the active filter and re-render results
+        function setActiveFilter(filter) {
+            if (sendButton.disabled && !stopButton.disabled) {
+                showMessage('Cannot change filter while the batch sequence is running.', 'info');
+                return;
+            }
+            activeFilter = filter;
+            updateCategorySummary(); // Update active class styles
+            renderResults(); // Re-render the visible cards
+        }
+
+        /**
+         * Helper function that handles API fetch, retries, and error reporting.
+         */
+        async function fetchWithRetry(dataLine) {
+            const apiUrl = API_ENDPOINT;
+            const maxRetries = 3;
+            const initialDelayMs = 1000; // 1 second base delay
+
+            let httpStatus, httpStatusText, rawBody, structuredData, isError = false;
+
+            for (let currentAttempt = 1; currentAttempt <= maxRetries; currentAttempt++) {
+                try {
+                    const formData = new URLSearchParams();
+                    formData.append('data', dataLine);
+
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: formData,
+                    });
+
+                    httpStatus = response.status;
+                    httpStatusText = response.statusText;
+
+                    const rawResponseText = await response.text();
+                    rawBody = rawResponseText;
+
+                    // Try to parse JSON
+                    try {
+                        const jsonResponse = JSON.parse(rawResponseText);
+                        rawBody = JSON.stringify(jsonResponse, null, 2);
+
+                        structuredData = {
+                            code: jsonResponse.code,
+                            apiStatus: jsonResponse.status || 'N/A',
+                            apiMessage: jsonResponse.message || 'N/A',
+                            bank: jsonResponse.card?.bank || 'N/A',
+                            type: jsonResponse.card?.type || 'N/A',
+                            category: jsonResponse.card?.category || 'N/A',
+                            brand: jsonResponse.card?.brand || 'N/A',
+                            currency: jsonResponse.card?.country?.currency || 'N/A',
+                            country: `${jsonResponse.card?.country?.emoji || ''} ${jsonResponse.card?.country?.name || 'N/A'}`,
+                            geo: `${jsonResponse.card?.country?.location?.latitude || 'N/A'}, ${jsonResponse.card?.country?.location?.longitude || 'N/A'}`
+                        };
+                    } catch (e) {
+                        // Not JSON, structuredData remains null
+                    }
+                    
+                    // Successful fetch (even if HTTP 4xx/5xx or structured data is missing)
+                    return { httpStatus, httpStatusText, rawBody, structuredData, isError: false };
+
+                } catch (error) {
+                    // This catches network errors (e.g., TypeError: Failed to fetch)
+                    isError = true;
+                    httpStatus = 'Error';
+                    httpStatusText = 'NETWORK FAILURE';
+                    rawBody = `SYSTEM ERROR LOG (Attempt ${currentAttempt}/${maxRetries}): ${error.message}`;
+
+                    if (currentAttempt < maxRetries) {
+                        const delay = initialDelayMs * Math.pow(2, currentAttempt - 1); // 1s, 2s, 4s
+                        // Exponential backoff delay
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    } else {
+                        // Last attempt failed, return the final error state
+                        return { httpStatus, httpStatusText, rawBody, structuredData, isError: true };
+                    }
+                }
+            }
+        }
+
+
+        // Main function to send the API request
+        async function sendRequest() {
+            
+            resetDisplay();
+            const delay = currentRequestDelay;
+            
+            const dataLines = dataBatchInput.value.split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0);
+
+            if (dataLines.length === 0) {
+                showMessage('SYSTEM ERROR: No data input detected. Load batch data.', 'error');
+                return;
+            }
+
+            // Set loading state
+            isStopping = false;
+            sendButton.disabled = true;
+            setStopButtonState(false);
+            loadingSpinner.classList.remove('hidden');
+
+            let totalRequests = dataLines.length;
+            let successfulApiTransactions = 0; // Tracks live results (code 1)
+
+            for (let i = 0; i < totalRequests; i++) {
+                if (isStopping) {
+                    showMessage(`SEQUENCE HALTED: Batch sequence manually terminated after processing ${i} requests. Finalizing results.`, 'info');
+                    break;
+                }
+
+                const dataLine = dataLines[i];
+                // Display the current delay in the button text
+                buttonText.textContent = `PROCESSING: ${i + 1} of ${totalRequests} | DELAY: ${delay}ms`;
+
+                // Execute the fetch with retry logic
+                const result = await fetchWithRetry(dataLine);
+                const { sortKey, filterKey } = determineSortAndFilterKey(result.structuredData, result.isError, result.httpStatus);
+
+                // Update counters in real-time
+                counts.all++;
+                counts[filterKey]++;
+                if (filterKey === 'live') { successfulApiTransactions++; }
+                updateCategorySummary();
+
+
+                // Collect the result data object for later sorting and rendering
+                const resultObject = {
+                    id: i, // Original index
+                    dataLine: dataLine,
+                    ...result, // includes httpStatus, httpStatusText, rawBody, structuredData, isError
+                    sortKey: sortKey, // 1=Live, 2=Die, 3=Unknown, 4=Error
+                    filterKey: filterKey, // 'live', 'die', 'unknown', 'error'
+                };
+
+                resultsArray.push(resultObject);
+                
+                // Immediately render or update the display to show progress 
+                renderResults(); 
+
+                // Implement Delay (Throttling)
+                if (delay > 0 && i < totalRequests - 1 && !isStopping) {
+                    buttonText.textContent = `PAUSING SEQUENCE FOR ${delay}MS...`;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+            
+            // --- FINALIZING SEQUENCE ---
+            
+            // Show final message
+            if (!isStopping) {
+                showMessage(`BATCH SEQUENCE COMPLETE: ${counts.all} total requests processed. ${successfulApiTransactions} LIVE transactions detected.`, 'success');
+            }
+            
+            // Final sorting and rendering
+            renderResults(); 
+
+            // Final button state reset
+            sendButton.disabled = false;
+            setStopButtonState(true);
+            loadingSpinner.classList.add('hidden');
+            buttonText.textContent = 'INITIATE BATCH SEQUENCE';
+        }
+
+        /**
+         * Copies all CC lines from Live, Dead, and Unknown categories, SORTED and LABELED by status.
+         */
+        function copyAllFilteredCCS() {
+            if (resultsArray.length === 0) {
+                showMessage('COMMAND REJECTED: No results have been processed yet.', 'info');
+                return;
+            }
+
+            // Define category headers
+            const LIVE_HEADER = '\n\n--- LIVE (1) ---';
+            const DEAD_HEADER = '\n\n--- DEAD (0) ---';
+            const UNKNOWN_HEADER = '\n\n--- UNKNOWN (2) ---';
+
+            // 1. Filter results into separate arrays (data lines only)
+            const liveCCs = resultsArray
+                .filter(result => result.filterKey === 'live')
+                .map(result => result.dataLine);
+
+            const dieCCs = resultsArray
+                .filter(result => result.filterKey === 'die')
+                .map(result => result.dataLine);
+                
+            const unknownCCs = resultsArray
+                .filter(result => result.filterKey === 'unknown')
+                .map(result => result.dataLine);
+            
+            // 2. Build the final string with headers
+            let ccsToCopy = '';
+            let totalCopied = 0;
+
+            // Live CCs (Priority 1)
+            if (liveCCs.length > 0) {
+                ccsToCopy += LIVE_HEADER + '\n' + liveCCs.join('\n');
+                totalCopied += liveCCs.length;
+            }
+
+            // Dead CCs (Priority 2)
+            if (dieCCs.length > 0) {
+                ccsToCopy += DEAD_HEADER + '\n' + dieCCs.join('\n');
+                totalCopied += dieCCs.length;
+            }
+
+            // Unknown CCs (Priority 3)
+            if (unknownCCs.length > 0) {
+                ccsToCopy += UNKNOWN_HEADER + '\n' + unknownCCs.join('\n');
+                totalCopied += unknownCCs.length;
+            }
+            
+            ccsToCopy = ccsToCopy.trim();
+
+            if (totalCopied === 0) {
+                showMessage('COMMAND REJECTED: No CC lines found in Live, Dead, or Unknown categories.', 'info');
+                return;
+            }
+
+            // Use the clipboard API (with fallback)
+            navigator.clipboard.writeText(ccsToCopy).then(() => {
+                showMessage(`SUCCESS: Copied ${totalCopied} Labeled & Sorted CC lines to clipboard.`, 'success');
+            }).catch(err => {
+                try {
+                    const tempTextArea = document.createElement('textarea');
+                    tempTextArea.value = ccsToCopy;
+                    document.body.appendChild(tempTextArea);
+                    tempTextArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempTextArea);
+                    showMessage(`SUCCESS: Copied ${totalCopied} Labeled & Sorted CC lines using Fallback Protocol.`, 'success');
+                } catch (err) {
+                    showMessage('SYSTEM ERROR: Clipboard access denied.', 'error');
+                }
+            });
+        }
+        
+        /**
+         * Copies all CC lines for a specific category (live, die, or unknown).
+         */
+        function copyCategoryCCS(filterKey) {
+            if (resultsArray.length === 0) {
+                showMessage('COMMAND REJECTED: No results processed yet.', 'info');
+                return;
+            }
+
+            const categoryName = filterKey.toUpperCase();
+
+            const ccsToCopy = resultsArray
+                .filter(result => result.filterKey === filterKey)
+                .map(result => result.dataLine)
+                .join('\n');
+            
+            if (ccsToCopy.length === 0) {
+                showMessage(`COMMAND REJECTED: No CC lines found in the ${categoryName} category.`, 'info');
+                return;
+            }
+
+            // Use the clipboard API (with fallback)
+            navigator.clipboard.writeText(ccsToCopy).then(() => {
+                const totalCopied = ccsToCopy.split('\n').length;
+                showMessage(`SUCCESS: Copied ${totalCopied} ${categoryName} CC line(s) to clipboard.`, 'success');
+            }).catch(err => {
+                // Fallback for restricted environments
+                try {
+                    const tempTextArea = document.createElement('textarea');
+                    tempTextArea.value = ccsToCopy;
+                    document.body.appendChild(tempTextArea);
+                    tempTextArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempTextArea);
+                    const totalCopied = ccsToCopy.split('\n').length;
+                    showMessage(`SUCCESS: Copied ${totalCopied} ${categoryName} CC line(s) using Fallback Protocol.`, 'success');
+                } catch (err) {
+                    showMessage('SYSTEM ERROR: Clipboard access denied.', 'error');
+                }
+            });
+        }
+        
+        // --- SIMPLE CARD LOGIC ---
+
+        /**
+         * Creates a compact card showing only the data line and a copy button.
+         */
+        function createSimpleCard(index, dataLine, filterKey) {
+            let statusColorClass = 'text-neon-cyan/90 bg-neon-cyan/10 border-neon-cyan';
+            let statusLabel = 'TOTAL';
+
+            if (filterKey === 'live') {
+                statusColorClass = 'text-neon-green bg-neon-green/10 border-neon-green';
+                statusLabel = 'LIVE (1)';
+            } else if (filterKey === 'die') {
+                statusColorClass = 'text-neon-red bg-neon-red/10 border-neon-red';
+                statusLabel = 'DEAD (0)';
+            } else if (filterKey === 'unknown') {
+                statusColorClass = 'text-neon-yellow bg-neon-yellow/10 border-neon-yellow';
+                statusLabel = 'UNKNOWN (2)';
+            }
+
+            const cardHtml = `
+                <div class="result-card bg-card-dark p-3 border-l-4 ${statusColorClass} flex flex-col sm:flex-row justify-between items-start sm:items-center shadow-md rounded-lg">
+                    <div class="flex items-center space-x-4 w-full sm:w-auto mb-2 sm:mb-0">
+                        <!-- Status Tag -->
+                        <span class="text-xs font-black px-2 py-0.5 rounded ${statusColorClass.replace('text-', 'bg-').replace('border-', 'border-').replace('/10', '/30').replace('bg-neon-cyan/30', 'bg-neon-cyan/50')} text-background-dark/80 min-w-[70px] text-center">${statusLabel}</span>
+
+                        <!-- CC Data Line -->
+                        <span id="data-line-${index}" class="font-mono text-sm text-gray-200 overflow-x-auto whitespace-nowrap">${dataLine}</span>
+                    </div>
+                    
+                    <!-- Copy Button (Single Line) -->
+                    <button onclick="copyDataLine('data-line-${index}')" 
+                            class="w-full sm:w-auto flex-shrink-0 ml-0 sm:ml-4 px-3 py-1 text-xs font-bold simple-card-copy-btn border-current rounded hover:opacity-80 transition"
+                            style="color: ${filterKey === 'live' ? '#a3e635' : (filterKey === 'die' ? '#f87171' : (filterKey === 'unknown' ? '#fbbf24' : '#22d3ee'))};">
+                        COPY
+                    </button>
+                </div>
+            `;
+            batchResultsContainer.insertAdjacentHTML('beforeend', cardHtml);
+        }
+
+        /**
+         * Function to copy the text content of a data line element to clipboard.
+         */
+        function copyDataLine(elementId) {
+            const textToCopy = document.getElementById(elementId).textContent; 
+            if (!textToCopy) {
+                showMessage('COMMAND REJECTED: No data line available to copy.', 'info');
+                return;
+            }
+            
+            navigator.clipboard.writeText(textToCopy.trim()).then(() => {
+                showMessage('CC DATA LINE COPIED TO CLIPBOARD.', 'info');
+            }).catch(err => {
+                // Fallback for restricted environments
+                try {
+                    const tempTextArea = document.createElement('textarea');
+                    tempTextArea.value = textToCopy.trim();
+                    document.body.appendChild(tempTextArea);
+                    tempTextArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempTextArea);
+                    showMessage('CC DATA LINE COPIED TO CLIPBOARD (Fallback Protocol).', 'info');
+                } catch (err) {
+                    showMessage('SYSTEM ERROR: Clipboard access denied.', 'error');
+                }
+            });
+        }
+        
+        // --- END SIMPLE CARD LOGIC ---
+        
+
+        /**
+         * Creates the DETAILED result card (for 'all' and 'error' filters).
+         */
+        function createDetailedCard(index, dataLine, httpStatus, httpStatusText, rawBody, structuredData, isError) {
+            
+            let mainStatus = structuredData ? (structuredData.apiStatus || 'N/A') : 'N/A';
+            let statusBgClass = 'bg-gray-700 text-gray-300'; 
+            let statusBorderColor = 'border-gray-600';
+            let apiCode = structuredData && typeof structuredData.code === 'number' ? structuredData.code : 'N/A';
+
+            // --- System Message Clean-up ---
+            const apiMessageRaw = structuredData?.apiMessage || 'No System Message Logged';
+            // Remove optional whitespace and the content inside square brackets globally (e.g., [GATE_01@chkr.cc])
+            const gatePattern = /\s*\[.*?\]/g;
+            const apiMessage = apiMessageRaw.replace(gatePattern, '').trim() || 'Status Detected (No specific message).';
+
+            // -------------------------------
+            
+            // Determine status and coloring based on API code (0, 1, 2)
+            if (isError || (httpStatus !== 200 && httpStatus !== 'Error')) {
+                statusBgClass = 'bg-neon-dark-gray text-neon-red font-black border border-neon-red';
+                statusBorderColor = 'border-neon-red';
+                mainStatus = isError ? 'NETWORK FAILURE' : `HTTP ${httpStatus} ERROR`;
+            } else if (apiCode === 1) { // Live (Priority 1)
+                statusBgClass = 'bg-neon-green text-background-dark font-black shadow-neon-sm shadow-neon-green/50';
+                statusBorderColor = 'border-neon-green';
+                mainStatus = 'LIVE / APPROVED';
+            } else if (apiCode === 0) { // Die (Priority 2)
+                statusBgClass = 'bg-neon-red text-background-dark font-black shadow-neon-sm shadow-neon-red/50';
+                statusBorderColor = 'border-neon-red';
+                mainStatus = 'DEAD / DECLINED';
+            } else if (apiCode === 2) { // Unknown (Priority 3)
+                statusBgClass = 'bg-neon-yellow text-background-dark font-black shadow-neon-sm shadow-neon-yellow/50';
+                statusBorderColor = 'border-neon-yellow';
+                mainStatus = 'UNKNOWN / RETRY';
+            } 
+            // If code is missing/unknown, it falls to the HTTP error or default gray
+
+            const bank = structuredData?.bank || 'N/A';
+            const type = structuredData?.type || 'N/A';
+            const category = structuredData?.category || 'N/A';
+            const brand = structuredData?.brand || 'N/A';
+            const currency = structuredData?.currency || 'N/A';
+            const country = structuredData?.country || 'N/A';
+            const geo = structuredData?.geo || 'N/A';
+            
+            const cardHtml = `
+                <!-- Adjusted for Mobile: flex-col on mobile, lg:flex-row on large screens -->
+                <div class="result-card bg-card-dark p-4 sm:p-6 border-l-4 ${statusBorderColor} flex flex-col lg:flex-row gap-4 sm:gap-6 shadow-xl rounded-lg">
+                    
+                    <!-- LEFT COLUMN: STATUS & MESSAGE -->
+                    <div class="lg:w-1/3 flex flex-col space-y-3 pr-0 lg:pr-4 lg:border-r border-gray-700 pb-4 lg:pb-0">
+                        <span class="text-xs font-mono text-neon-cyan/80 uppercase tracking-widest">DISPLAY INDEX: ${index + 1} (API Code: ${apiCode})</span>
+                        
+                        <div class="text-xl sm:text-2xl p-2 sm:p-3 text-center rounded ${statusBgClass}">
+                            ${mainStatus}
+                        </div>
+                        
+                        <p class="text-sm font-bold text-gray-300">
+                            SYSTEM MESSAGE: <span class="font-normal text-neon-cyan break-words">${apiMessage}</span>
+                        </p>
+                        
+                        <!-- Input Data Revealer -->
+                        <div class="mt-2">
+                             <details>
+                                <summary class="text-xs font-semibold text-gray-500 mb-1 cursor-pointer hover:text-neon-cyan">RAW INPUT DATA (CLICK TO REVEAL):</summary>
+                                <div class="text-xs font-mono break-all text-gray-400 p-2 bg-background-dark/80 rounded" title="Input Data Line">
+                                    ${dataLine}
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COLUMN: STRUCTURED DATA GRID -->
+                    <div class="lg:w-2/3 space-y-3">
+                        <h3 class="text-xl font-bold text-gray-200 border-b border-gray-700 pb-2">Extracted Card Metadata</h3>
+
+                        <!-- Structured Details Grid (Responsive: 2 columns on mobile, 3 on sm/tablet) -->
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 text-sm text-gray-400 font-mono">
+                            <div class="flex flex-col">
+                                <span class="text-xs text-neon-cyan/80">BANK</span>
+                                <span class="text-gray-100 font-bold truncate">${bank}</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-xs text-neon-cyan/80">TYPE / BRAND</span>
+                                <span class="text-gray-100 font-bold truncate">${type} / ${brand}</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-xs text-neon-cyan/80">CATEGORY</span>
+                                <span class="text-gray-100 font-bold truncate">${category}</span>
+                            </div>
+                            
+                            <div class="flex flex-col">
+                                <span class="text-xs text-neon-cyan/80">COUNTRY/CODE</span>
+                                <span class="text-gray-100 font-bold truncate">${country}</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-xs text-neon-cyan/80">CURRENCY</span>
+                                <span class="text-gray-100 font-bold truncate">${currency}</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-xs text-neon-cyan/80">GEO COORDINATES</span>
+                                <span class="text-gray-100 font-bold truncate">${geo}</span>
+                            </div>
+                            
+                             <div class="flex flex-col col-span-2 sm:col-span-3">
+                                <span class="text-xs text-neon-cyan/80">HTTP STATUS</span>
+                                <span class="text-gray-100 font-bold truncate">${httpStatus} ${httpStatusText}</span>
+                            </div>
+                        </div>
+
+                        <!-- Raw Response Toggle -->
+                        <details class="pt-2 border-t border-gray-800">
+                            <summary class="cursor-pointer text-xs font-semibold text-neon-cyan hover:text-cyan-300 transition duration-150">
+                                View / Copy Raw JSON Response &lt;PROTOCOL DUMP&gt;
+                            </summary>
+                            <pre id="result-body-${dataLine.replace(/[^a-zA-Z0-9]/g, '')}" class="result-body p-3 text-xs text-neon-cyan/90 mt-2 rounded">${rawBody}</pre>
+                            <button onclick="copyToClipboard('result-body-${dataLine.replace(/[^a-zA-Z0-9]/g, '')}')" class="mt-1 text-xs text-gray-500 hover:text-neon-cyan transition duration-150 focus:outline-none">
+                                [COPY DUMP]
+                            </button>
+                        </details>
+                    </div>
+                </div>
+            `;
+            batchResultsContainer.insertAdjacentHTML('beforeend', cardHtml);
+        }
+
+
+        /**
+         * Renders the results to the container based on the current activeFilter and sort order.
+         */
+        function renderResults() {
+            // 1. Sort the array: Live (1) -> Die (0) -> Unknown (2) -> Error (4)
+            resultsArray.sort((a, b) => a.sortKey - b.sortKey);
+            
+            // 2. Clear the container
+            batchResultsContainer.innerHTML = '';
+            
+            // 3. Filter and render
+            const filteredResults = resultsArray.filter(result => 
+                activeFilter === 'all' || result.filterKey === activeFilter
+            );
+
+            if (filteredResults.length === 0 && resultsArray.length > 0) {
+                 batchResultsContainer.innerHTML = `<p class="text-neon-gray text-lg italic text-center p-8">No results in the '${activeFilter.toUpperCase()}' category.</p>`;
+                 return;
+            } else if (resultsArray.length === 0) {
+                 batchResultsContainer.innerHTML = '<p class="text-gray-500 text-sm italic" id="initial-message">System ready. Input data and initiate sequence to begin batch analysis.</p>';
+                 return;
+            }
+
+            filteredResults.forEach((result, index) => {
+                if (activeFilter === 'all' || activeFilter === 'error') {
+                    // Show detailed card for Total and Error views
+                    createDetailedCard(
+                        index, 
+                        result.dataLine, 
+                        result.httpStatus, 
+                        result.httpStatusText, 
+                        result.rawBody, 
+                        result.structuredData, 
+                        result.isError
+                    );
+                } else {
+                    // Show simple card for Live, Die, and Unknown views
+                    createSimpleCard(
+                        result.id, 
+                        result.dataLine, 
+                        result.filterKey
+                    );
+                }
+            });
+        }
+
+
+        // Function to copy the response body to clipboard
+        function copyToClipboard(elementId) {
+            const textToCopy = document.getElementById(elementId).textContent; 
+            if (!textToCopy) {
+                showMessage('COMMAND REJECTED: No data dump available to copy.', 'info');
+                return;
+            }
+            
+            // Standard clipboard API
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                showMessage('DATA DUMP COPIED TO CLIPBOARD.', 'info');
+            }).catch(err => {
+                // Fallback for restricted environments
+                try {
+                    const tempTextArea = document.createElement('textarea');
+                    tempTextArea.value = textToCopy;
+                    document.body.appendChild(tempTextArea);
+                    tempTextArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempTextArea);
+                    showMessage('DATA DUMP COPIED TO CLIPBOARD (Fallback Protocol).', 'info');
+                } catch (err) {
+                    showMessage('SYSTEM ERROR: Clipboard access denied.', 'error');
+                }
+            });
+        }
+        
+        // Expose functions globally for HTML access
+        window.sendRequest = sendRequest;
+        window.stopRequest = stopRequest;
+        window.fullReset = fullReset;
+        window.setActiveFilter = setActiveFilter;
+        window.toggleInputMask = toggleInputMask;
+        window.openDelayOverrideModal = openDelayOverrideModal;
+        window.closeDelayOverrideModal = closeDelayOverrideModal;
+        window.checkAccessCode = checkAccessCode;
+        window.showDelayInfo = showDelayInfo;
+        window.copyToClipboard = copyToClipboard;
+        window.copyDataLine = copyDataLine;
+        window.copyAllFilteredCCS = copyAllFilteredCCS; 
+        window.copyCategoryCCS = copyCategoryCCS; 
+        
+    </script>
+</body>
+</html>
