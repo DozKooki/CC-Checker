@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -133,29 +132,31 @@
 </head>
 <body class="flex flex-col items-center p-4 sm:p-6 md:p-8 font-sans">
     
-    <!-- NAVIGATION BAR -->
+    <!-- NAVIGATION BAR (Mobile Optimized) -->
     <header class="fixed top-0 left-0 w-full z-50 bg-gray-900 shadow-xl border-b border-gray-700/50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <!-- Logo / App Title -->
                 <a href="#" class="text-xl sm:text-2xl font-extrabold text-neon-cyan tracking-tight flex items-center">
                     <svg class="w-6 h-6 mr-2 text-neon-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l-2 2M15 19V6l2 2m-8 0h6m-6 4h6m-6 4h6m-6 4v4m0 0h4m-4 0h4M8 20v-4a1 1 0 011-1h4a1 1 0 011 1v4m-4 0h4"></path></svg>
-                    CC Checker & API Suite
+                    <span class="hidden sm:inline">CC Checker & API Suite</span>
+                    <span class="inline sm:hidden">CC Checker</span>
                 </a>
 
                 <!-- Navigation Links / Buttons -->
                 <nav class="flex items-center space-x-2 sm:space-x-4">
                     <!-- CC Generator Button (WIP) -->
                     <button disabled
-                        class="relative flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-400 bg-gray-700 rounded-lg shadow-inner cursor-not-allowed transition duration-150 ease-in-out">
-                        <span>CC Generator</span>
+                        class="relative flex items-center px-2 sm:px-4 py-1 sm:py-2 text-xs font-medium text-gray-400 bg-gray-700 rounded-lg shadow-inner cursor-not-allowed transition duration-150 ease-in-out">
+                        <span class="hidden sm:inline">CC Generator</span>
+                        <span class="inline sm:hidden">Generator</span>
                         <span class="progress-badge">WIP</span>
                     </button>
                     
                     <!-- Main CC Checker Link (Active) -->
-                    <a href="#" class="text-background-dark bg-neon-cyan border border-neon-cyan/50 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold rounded-lg shadow-neon-sm shadow-neon-cyan/80 transition duration-150 ease-in-out">
+                    <a href="#" class="text-background-dark bg-neon-cyan border border-neon-cyan/50 px-2 py-1 sm:px-4 sm:py-2 text-xs font-bold rounded-lg shadow-neon-sm shadow-neon-cyan/80 transition duration-150 ease-in-out">
                         <span class="hidden sm:inline">CC Checker</span>
-                        <span class="inline sm:hidden">Main Checker</span>
+                        <span class="inline sm:hidden">Main</span>
                     </a>
                 </nav>
             </div>
@@ -163,8 +164,8 @@
     </header>
 
     <!-- Main Console Container -->
-    <div class="w-full max-w-6xl mt-24 bg-card-dark shadow-2xl shadow-neon-sm p-4 md:p-8 space-y-8 border border-neon-cyan/30 rounded-lg">
-        <h1 class="text-3xl sm:text-4xl font-black text-neon-cyan text-center tracking-wider uppercase">
+    <div class="w-full max-w-6xl mt-20 sm:mt-24 bg-card-dark shadow-2xl shadow-neon-sm p-4 md:p-8 space-y-6 sm:space-y-8 border border-neon-cyan/30 rounded-lg">
+        <h1 class="text-xl sm:text-4xl font-black text-neon-cyan text-center tracking-wider uppercase">
             &lt;BATCH CHECKER INTERFACE&gt;
         </h1>
         <p class="text-center text-gray-400 text-xs sm:text-sm">
@@ -172,7 +173,7 @@
         </p>
 
         <!-- Configuration Panel -->
-        <div class="space-y-4 border-b border-t border-gray-700 py-6">
+        <div class="space-y-4 border-b border-t border-gray-700 py-4 sm:py-6">
             <!-- Delay Input -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="md:col-span-1">
@@ -228,57 +229,57 @@
         </div>
 
         <!-- Batch Results Display Area -->
-        <div class="mt-6 border-t border-gray-700 pt-6">
-            <h2 class="text-2xl font-bold text-neon-cyan mb-4 tracking-wide flex justify-between items-center">
+        <div class="mt-4 sm:mt-6 border-t border-gray-700 pt-4 sm:pt-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-neon-cyan mb-4 tracking-wide flex flex-col sm:flex-row justify-between items-start sm:items-center">
                 <span>ANALYSIS RESULTS</span>
                 <!-- Updated: Copy All Live/Dead/Unknown Batch Button (Now performs sorting AND category labeling) -->
                 <button 
                     id="copy-all-ccs-button" 
                     onclick="copyAllFilteredCCS()" 
-                    class="px-3 py-1 bg-neon-cyan/20 text-neon-cyan text-sm font-semibold rounded-lg hover:bg-neon-cyan/30 transition duration-150 border border-neon-cyan/50"
+                    class="mt-2 sm:mt-0 px-3 py-1 bg-neon-cyan/20 text-neon-cyan text-sm font-semibold rounded-lg hover:bg-neon-cyan/30 transition duration-150 border border-neon-cyan/50 w-full sm:w-auto"
                     title="Copies all Live, Dead, and Unknown CC lines, sorted and labeled by category.">
                     Copy All Key Categories (Labeled & Sorted)
                 </button>
             </h2>
             
-            <!-- Category Dashboard (Responsive Grid) -->
-            <div id="category-summary" class="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-4 text-center mb-6 p-4 rounded bg-neon-dark-gray/30">
+            <!-- Category Dashboard (Responsive Grid: 2 columns on mobile, 5 on desktop) -->
+            <div id="category-summary" class="grid grid-cols-2 md:grid-cols-5 gap-2 sm:gap-4 text-center mb-6 p-4 rounded bg-neon-dark-gray/30">
                  <!-- Total Counter/All Filter -->
                 <div id="filter-all" onclick="setActiveFilter('all')" class="category-button active border-b-2 border-neon-cyan/80 p-2 sm:p-3 cursor-pointer transition duration-300 flex flex-col items-center justify-between">
                     <span class="text-xs font-bold text-neon-cyan block">TOTAL PROCESSED</span>
-                    <span id="total-count" class="text-2xl sm:text-3xl font-black text-neon-cyan flex-grow flex items-center justify-center">0</span>
+                    <span id="total-count" class="text-xl sm:text-3xl font-black text-neon-cyan flex-grow flex items-center justify-center">0</span>
                     <div class="h-[26px]"></div> <!-- Placeholder for alignment -->
                 </div>
                 <!-- Live Counter with Copy Button -->
                 <div id="filter-live" onclick="setActiveFilter('live')" class="category-button border-b-2 border-neon-green/0 hover:border-neon-green/80 p-2 sm:p-3 cursor-pointer transition duration-300 flex flex-col items-center justify-between">
                     <span class="text-xs font-bold text-neon-green block">LIVE (1)</span>
-                    <span id="live-count" class="text-2xl sm:text-3xl font-black text-neon-green flex-grow flex items-center justify-center">0</span>
+                    <span id="live-count" class="text-xl sm:text-3xl font-black text-neon-green flex-grow flex items-center justify-center">0</span>
                     <!-- New Copy Button -->
                     <button onclick="event.stopPropagation(); copyCategoryCCS('live')" class="mt-1 px-2 py-0.5 text-xs font-bold text-background-dark bg-neon-green/80 rounded-full hover:bg-neon-green transition duration-150">Copy</button>
                 </div>
                 <!-- Die Counter with Copy Button -->
                 <div id="filter-die" onclick="setActiveFilter('die')" class="category-button border-b-2 border-neon-red/0 hover:border-neon-red/80 p-2 sm:p-3 cursor-pointer transition duration-300 flex flex-col items-center justify-between">
                     <span class="text-xs font-bold text-neon-red block">DEAD (0)</span>
-                    <span id="die-count" class="text-2xl sm:text-3xl font-black text-neon-red flex-grow flex items-center justify-center">0</span>
+                    <span id="die-count" class="text-xl sm:text-3xl font-black text-neon-red flex-grow flex items-center justify-center">0</span>
                     <!-- New Copy Button -->
                     <button onclick="event.stopPropagation(); copyCategoryCCS('die')" class="mt-1 px-2 py-0.5 text-xs font-bold text-background-dark bg-neon-red/80 rounded-full hover:bg-neon-red transition duration-150">Copy</button>
                 </div>
                 <!-- Unknown Counter with Copy Button -->
                 <div id="filter-unknown" onclick="setActiveFilter('unknown')" class="category-button border-b-2 border-neon-yellow/0 hover:border-neon-yellow/80 p-2 sm:p-3 cursor-pointer transition duration-300 flex flex-col items-center justify-between">
                     <span class="text-xs font-bold text-neon-yellow block">UNKNOWN (2)</span>
-                    <span id="unknown-count" class="text-2xl sm:text-3xl font-black text-neon-yellow flex-grow flex items-center justify-center">0</span>
+                    <span id="unknown-count" class="text-xl sm:text-3xl font-black text-neon-yellow flex-grow flex items-center justify-center">0</span>
                     <!-- New Copy Button -->
                     <button onclick="event.stopPropagation(); copyCategoryCCS('unknown')" class="mt-1 px-2 py-0.5 text-xs font-bold text-background-dark bg-neon-yellow/80 rounded-full hover:bg-neon-yellow transition duration-150">Copy</button>
                 </div>
                 <!-- Error Counter -->
                 <div id="filter-error" onclick="setActiveFilter('error')" class="category-button border-b-2 border-neon-gray/0 hover:border-neon-gray/80 p-2 sm:p-3 cursor-pointer transition duration-300 flex flex-col items-center justify-between">
                     <span class="text-xs font-bold text-neon-gray block">ERRORS</span>
-                    <span id="error-count" class="text-2xl sm:text-3xl font-black text-neon-gray flex-grow flex items-center justify-center">0</span>
+                    <span id="error-count" class="text-xl sm:text-3xl font-black text-neon-gray flex-grow flex items-center justify-center">0</span>
                     <div class="h-[26px]"></div> <!-- Placeholder for alignment -->
                 </div>
             </div>
             
-            <div id="batch-results-container" class="space-y-6">
+            <div id="batch-results-container" class="space-y-4 sm:space-y-6">
                 <p class="text-gray-500 text-sm italic" id="initial-message">System ready. Input data and initiate sequence to begin batch analysis.</p>
             </div>
         </div>
@@ -290,8 +291,8 @@
     </footer>
 
     <!-- ACCESS CODE MODAL (Delay Override) -->
-    <div id="access-modal" class="modal fixed inset-0 bg-background-dark/90 backdrop-blur-sm z-50 hidden flex items-center justify-center opacity-0 transition-opacity duration-300">
-        <div class="bg-card-dark p-8 rounded-lg border border-neon-cyan/50 shadow-neon w-full max-w-sm space-y-4">
+    <div id="access-modal" class="modal fixed inset-0 bg-background-dark/90 backdrop-blur-sm z-50 hidden flex items-center justify-center opacity-0 transition-opacity duration-300 p-4">
+        <div class="bg-card-dark p-6 sm:p-8 rounded-lg border border-neon-cyan/50 shadow-neon w-full max-w-sm space-y-4">
             <h3 class="text-xl font-bold text-neon-cyan">Developer Override Mode</h3>
             <p class="text-sm text-gray-400">
                 Enter the secret access code to temporarily reduce the delay from 4000ms to 500ms for rapid testing.
@@ -972,10 +973,11 @@
             const geo = structuredData?.geo || 'N/A';
             
             const cardHtml = `
+                <!-- Adjusted for Mobile: flex-col on mobile, lg:flex-row on large screens -->
                 <div class="result-card bg-card-dark p-4 sm:p-6 border-l-4 ${statusBorderColor} flex flex-col lg:flex-row gap-4 sm:gap-6 shadow-xl rounded-lg">
                     
                     <!-- LEFT COLUMN: STATUS & MESSAGE -->
-                    <div class="lg:w-1/3 flex flex-col space-y-3 pr-4 lg:border-r border-gray-700 pb-4 lg:pb-0">
+                    <div class="lg:w-1/3 flex flex-col space-y-3 pr-0 lg:pr-4 lg:border-r border-gray-700 pb-4 lg:pb-0">
                         <span class="text-xs font-mono text-neon-cyan/80 uppercase tracking-widest">DISPLAY INDEX: ${index + 1} (API Code: ${apiCode})</span>
                         
                         <div class="text-xl sm:text-2xl p-2 sm:p-3 text-center rounded ${statusBgClass}">
@@ -1001,7 +1003,7 @@
                     <div class="lg:w-2/3 space-y-3">
                         <h3 class="text-xl font-bold text-gray-200 border-b border-gray-700 pb-2">Extracted Card Metadata</h3>
 
-                        <!-- Structured Details Grid (Responsive) -->
+                        <!-- Structured Details Grid (Responsive: 2 columns on mobile, 3 on sm/tablet) -->
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 text-sm text-gray-400 font-mono">
                             <div class="flex flex-col">
                                 <span class="text-xs text-neon-cyan/80">BANK</span>
