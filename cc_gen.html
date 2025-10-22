@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Structural CC Generator</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configure Tailwind for the dark/neon theme -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Consolas', 'Monaco', 'monospace'],
+                    },
+                    colors: {
+                        'background-dark': '#0f172a', /* slate-900 */
+                        'card-dark': '#1e293b', /* slate-800 */
+                        'neon-cyan': '#22d3ee', /* Primary Accent: cyan-400 */
+                        'neon-green': '#a3e635', /* Success/Highlight */
+                        'neon-red': '#f87171', /* Error */
+                        'neon-gray': '#94a3b8', /* slate-400 */
+                        'neon-dark-gray': '#334155', /* slate-700 */
+                        'text-dark': '#0f172a', /* For text on bright backgrounds */
+                        'neon-yellow': '#facc15', /* Warning/Accent */
+                    },
+                    boxShadow: {
+                        // Softened shadows for a less "glitchy" look
+                        'neon-sm': '0 0 5px rgba(34, 211, 238, 0.2)', 
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Load Inter font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* Base Dark Background and added padding for fixed header */
+        body {
+            background-color: #0f172a; 
+            color: #f1f5f9; 
+            min-height: 100vh;
+            /* Added padding-top to compensate for the fixed h-16 (4rem) header */
+            padding-top: 4rem; 
+        }
+        
+        /* Input/Textarea Styling - Soft Focus Glow */
+        input[type="text"], input[type="number"], textarea, select {
+            background-color: #1e293b;
+            color: #e2e8f0; 
+            border: 1px solid #334155;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
+            border-color: #22d3ee; 
+            outline: none;
+            box-shadow: 0 0 3px rgba(34, 211, 238, 0.5); 
+        }
+
+        /* Neon Button Styling - CYAN-BASED, SOFTER GLOW */
+        .neon-button {
+            border: 1px solid #22d3ee; 
+            /* Softened glow */
+            box-shadow: 0 0 3px rgba(34, 211, 238, 0.4), inset 0 0 3px rgba(34, 211, 238, 0.4); 
+            transition: all 0.3s;
+            background-color: rgba(34, 211, 238, 0.1); 
+        }
+        .neon-button:hover:not(:disabled) {
+            box-shadow: 0 0 8px rgba(34, 211, 238, 0.7), inset 0 0 8px rgba(34, 211, 238, 0.7);
+            background-color: rgba(34, 211, 238, 0.2);
+        }
+        .neon-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Raw Output Styling */
+        #generator-output {
+            font-family: var(--font-mono);
+            min-height: 250px;
+            background-color: #111827; 
+            border: 1px solid #374151; 
+        }
+        
+        /* Progress badge style for navigation */
+        .progress-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #a3e635; /* Neon Green */
+            color: #0f172a; /* Dark text */
+            padding: 1px 6px;
+            border-radius: 9999px; /* full rounded */
+            font-size: 0.65rem;
+            font-weight: bold;
+            line-height: 1;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center font-sans">
+    
+    <!-- FIXED HEADER (New Navbar Structure) -->
+    <header class="fixed top-0 left-0 w-full z-50 bg-background-dark shadow-xl border-b border-neon-cyan/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo / App Title -->
+                <a href="#" class="text-xl sm:text-2xl font-extrabold text-neon-cyan tracking-tight flex items-center" onclick="showView('generator')">
+                    <!-- Custom SVG Icon for consistency -->
+                    <svg class="w-6 h-6 mr-2 text-neon-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l-2 2M15 19V6l2 2m-8 0h6m-6 4h6m-6 4h6m-6 4v4m0 0h4m-4 0h4M8 20v-4a1 1 0 011-1h4a1 1 0 011 1v4m-4 0h4"></path></svg>
+                    <span class="hidden sm:inline">CC Generator & Tester</span>
+                    <span class="inline sm:hidden">CC Tools</span>
+                </a>
+
+                <!-- Navigation Links / Buttons -->
+                <nav class="flex items-center space-x-2 sm:space-x-4">
+                    
+                    <!-- CC Checker Link - NOW EXTERNAL LINK -->
+                    <!-- *** IMPORTANT: REPLACE THE '#' BELOW WITH YOUR HOSTED CC CHECKER URL *** -->
+                    <a id="nav-checker"
+                        href="#" 
+                        target="_blank"
+                        class="relative flex items-center px-2 sm:px-4 py-1 sm:py-2 text-xs font-medium text-neon-gray/70 bg-card-dark/50 border border-neon-dark-gray rounded-lg shadow-inner transition duration-150 ease-in-out hover:text-neon-cyan hover:border-neon-cyan">
+                        <span class="hidden sm:inline">CC Checker</span>
+                        <span class="inline sm:hidden">Checker</span>
+                    </a>
+                    
+                    <!-- CC Generator Link (Active by default) -->
+                    <button id="nav-generator"
+                        onclick="showView('generator')"
+                        class="text-text-dark bg-neon-cyan border border-neon-cyan/50 px-2 py-1 sm:px-4 sm:py-2 text-xs font-bold rounded-lg shadow-neon-sm shadow-neon-cyan/80 transition duration-150 ease-in-out">
+                        <span class="hidden sm:inline">CC Generator</span>
+                        <span class="inline sm:hidden">Generator</span>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content Container -->
+    <div class="w-full max-w-6xl mt-8 mb-20 bg-card-dark shadow-2xl shadow-neon-sm p-4 md:p-8 space-y-6 sm:space-y-8 border border-neon-cyan/10 rounded-lg">
+        
+        <!-- Message Box (Used by both views) -->
+        <div id="message-box" class="hidden p-3 text-sm font-bold border rounded text-center"></div>
+
+        <!-- GENERATOR VIEW -->
+        <div id="generator-view" class="view-content space-y-6 sm:space-y-8">
+            
+            <header class="text-center">
+                <h1 class="text-3xl sm:text-5xl font-black text-neon-cyan tracking-wider uppercase mb-2">
+                    &lt;STRUCTURAL CC GENERATOR&gt;
+                </h1>
+                <p class="text-neon-gray text-sm sm:text-base">
+                    Generate **Luhn-valid test card numbers** using specific BINs, with flexible output formatting.
+                </p>
+            </header>
+
+            <!-- Configuration Panel -->
+            <div class="space-y-4 border-b border-t border-gray-700 py-4 sm:py-6">
+                <h2 class="text-xl font-bold text-neon-cyan/90 border-b border-neon-dark-gray pb-2">Generation Parameters</h2>
+                
+                <!-- Inputs: BIN and Quantity -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="generator-bin" class="block text-sm font-extrabold text-neon-cyan mb-2">BIN (Up to 15 Digits) <span class="text-neon-red">*Mandatory*</span></label>
+                        <input type="text" id="generator-bin" placeholder="E.g., 424242" maxlength="15" class="w-full p-3 font-mono text-base rounded transition duration-150" value="451717">
+                        <p class="text-xs text-neon-gray mt-1">Starting digits of the card number (Max 15 digits).</p>
+                    </div>
+                    <div>
+                        <label for="generator-count" class="block text-sm font-extrabold text-neon-cyan mb-2">QUANTITY TO GENERATE (Max 1000) <span class="text-neon-red">*Mandatory*</span></label>
+                        <input type="number" id="generator-count" placeholder="E.g., 100" value="10" min="1" max="1000" class="w-full p-3 font-mono text-base rounded transition duration-150">
+                        <p class="text-xs text-neon-gray mt-1">How many card lines to produce.</p>
+                    </div>
+                </div>
+                
+                <!-- Expiry and CVV Settings -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                        <label for="generator-exp-mm" class="block text-sm font-extrabold text-neon-cyan/90 mb-2">EXPIRY MONTH (MM) <span class="text-neon-gray">(Optional/Random)</span></label>
+                        <input type="number" id="generator-exp-mm" placeholder="Leave blank for random" min="1" max="12" class="w-full p-3 font-mono text-base rounded transition duration-150">
+                    </div>
+                    <div>
+                        <label for="generator-exp-yy" class="block text-sm font-extrabold text-neon-cyan/90 mb-2">EXPIRY YEAR (YYYY) <span class="text-neon-gray">(Optional/Random)</span></label>
+                        <input type="number" id="generator-exp-yy" placeholder="Leave blank for random" min="2024" max="2040" class="w-full p-3 font-mono text-base rounded transition duration-150">
+                    </div>
+                    <div class="col-span-2">
+                        <label for="generator-cvv" class="block text-sm font-extrabold text-neon-cyan/90 mb-2">CVV (3 Digits - Default) <span class="text-neon-gray">(Optional/Random)</span></label>
+                        <input type="text" id="generator-cvv" placeholder="Leave blank for random (3 digits)" maxlength="4" class="w-full p-3 font-mono text-base rounded transition duration-150">
+                    </div>
+                </div>
+                
+                <!-- Output Format Selection -->
+                <div class="pt-4">
+                    <label for="output-format" class="block text-sm font-extrabold text-neon-cyan mb-2">OUTPUT FORMAT</label>
+                    <select id="output-format" class="w-full p-3 font-mono text-base rounded transition duration-150 bg-card-dark" onchange="updateOutputFormatLabel()">
+                        <option value="csv">CSV/TXT (Pipe | Separated)</option>
+                        <option value="json">JSON Array</option>
+                    </select>
+                </div>
+
+                <!-- Generate Button -->
+                <button id="generate-button" onclick="handleGenerateClick()" class="w-full flex items-center justify-center text-neon-cyan font-bold py-4 px-6 uppercase tracking-widest focus:outline-none neon-button">
+                    GENERATE LUHN-VALID CARD DATA
+                </button>
+            </div>
+            
+            <!-- Generator Results Output -->
+            <div class="mt-4 sm:mt-6">
+                <h2 class="text-xl sm:text-2xl font-bold text-neon-cyan mb-4 tracking-wide flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                    <span>GENERATED OUTPUT</span>
+                    <button 
+                        id="copy-generated-button" 
+                        onclick="copyGeneratedCCs()" 
+                        class="mt-2 sm:mt-0 px-3 py-1 bg-neon-cyan/20 text-neon-cyan text-sm font-semibold rounded-lg hover:bg-neon-cyan/30 transition duration-150 border border-neon-cyan/50 w-full sm:w-auto disabled:opacity-50"
+                        title="Copy all generated lines to clipboard." disabled>
+                        Copy All Generated Lines
+                    </button>
+                </h2>
+                <textarea id="generator-output" rows="10" class="w-full p-4 font-mono text-sm resize-y" placeholder="Generated CCs will appear here in CC|MM|YYYY|CVV format..."></textarea>
+                <p id="output-format-label" class="text-xs text-neon-gray mt-2">Format: `Card Number|MM|YYYY|CVV`</p>
+            </div>
+        </div>
+        
+        <!-- CHECKER VIEW REMOVED - NOW EXTERNAL LINK -->
+    </div>
+
+    <!-- APP LOGIC -->
+    <script>
+        // --- GLOBAL REFERENCES & STATE ---
+        const navGenerator = document.getElementById('nav-generator');
+        const navChecker = document.getElementById('nav-checker'); // Now an <a> tag
+        const generatorView = document.getElementById('generator-view');
+        // const checkerView = document.getElementById('checker-view'); // Removed
+        const messageBox = document.getElementById('message-box');
+        
+        // Generator elements
+        const generatorBin = document.getElementById('generator-bin');
+        const generatorCount = document.getElementById('generator-count');
+        const generatorExpMM = document.getElementById('generator-exp-mm');
+        const generatorExpYY = document.getElementById('generator-exp-yy');
+        const generatorCVV = document.getElementById('generator-cvv');
+        const generatorOutput = document.getElementById('generator-output');
+        const copyButton = document.getElementById('copy-generated-button');
+        const outputFormatSelect = document.getElementById('output-format');
+        const outputFormatLabel = document.getElementById('output-format-label');
+        
+        // --- UTILITY FUNCTIONS ---
+        
+        /**
+         * Utility function to display messages
+         */
+        function showMessage(message, type = 'info') {
+            messageBox.textContent = message;
+            // Clear all message-related classes
+            messageBox.classList.remove(
+                'hidden', 'bg-neon-red/20', 'text-neon-red', 'border-neon-red',
+                'bg-neon-green/20', 'text-neon-green', 'border-neon-green',
+                'bg-neon-cyan/20', 'text-neon-cyan', 'border-neon-cyan'
+            );
+            
+            messageBox.classList.add('block'); // Ensure it's visible
+            
+            if (type === 'error') {
+                messageBox.classList.add('bg-neon-red/20', 'text-neon-red', 'border-neon-red');
+            } else if (type === 'success') {
+                messageBox.classList.add('bg-neon-green/20', 'text-neon-green', 'border-neon-green'); 
+            } else if (type === 'info') {
+                messageBox.classList.add('bg-neon-cyan/20', 'text-neon-cyan', 'border-neon-cyan');
+            }
+        }
+        
+        /**
+         * Clears the message box and hides it.
+         */
+        function hideMessage() {
+            messageBox.classList.add('hidden');
+        }
+
+        // --- LUHN ALGORITHM (Used by Generator) ---
+
+        /**
+         * Implements the Luhn algorithm to validate a full card number.
+         * For the generator, this returns the check digit.
+         * @param {string} cardNumber - The partial card number string.
+         * @returns {number} - The check digit (0-9) needed to make the full number valid, OR
+         */
+        function luhnCheck(cardNumber) {
+            let sum = 0;
+            // The parity starts from the last digit (index length - 1)
+            let parity = (cardNumber.length) % 2; 
+
+            for (let i = cardNumber.length - 1; i >= 0; i--) {
+                let digit = parseInt(cardNumber.charAt(i), 10);
+
+                // Multiply every second digit (starting from the rightmost digit, index 0, as a single number)
+                if (i % 2 === parity) {
+                    digit *= 2;
+                }
+
+                if (digit > 9) {
+                    digit -= 9;
+                }
+
+                sum += digit;
+            }
+
+            // Return the check digit (0-9) needed to make the full number valid.
+            return (sum * 9) % 10;
+        }
+
+        // --- GENERATOR LOGIC ---
+        
+        /**
+         * Generates a single, structurally valid CC number based on BIN and completes it to 16 digits.
+         * @param {string} bin - The 1-15 digit BIN.
+         * @returns {string} - A 16-digit Luhn-valid credit card number.
+         */
+        function generateSingleCC(bin) {
+            const cardNumberLength = 16; 
+            // The number of random digits needed to make the card almost 16 digits long.
+            const randomDigitsLength = cardNumberLength - bin.length - 1; 
+            
+            let randomDigits = '';
+            for (let i = 0; i < randomDigitsLength; i++) {
+                randomDigits += Math.floor(Math.random() * 10);
+            }
+
+            let partialCard = bin + randomDigits;
+            // Calculate the check digit for the 16-digit structure.
+            // Note: The Luhn check is done on the partial card, reversed, to get the correct check digit.
+            const checkDigit = luhnCheck(partialCard.split('').reverse().join(''));
+
+            return partialCard + checkDigit;
+        }
+        
+        /**
+         * Generates a random, valid expiry month (1-12).
+         * @returns {number}
+         */
+        function randomMM() {
+            return Math.floor(Math.random() * 12) + 1;
+        }
+
+        /**
+         * Generates a random, future expiry year (current year + up to 10 years).
+         * @returns {number}
+         */
+        function randomYY() {
+            const currentYear = new Date().getFullYear();
+            // Generate a year between current year and current year + 10
+            return Math.floor(Math.random() * 11) + currentYear; 
+        }
+
+        /**
+         * Generates a random CVV string of exactly 3 digits.
+         * @returns {string} - A 3-digit string.
+         */
+        function randomCVV() {
+            let cvv = '';
+            for (let i = 0; i < 3; i++) {
+                cvv += Math.floor(Math.random() * 10);
+            }
+            return cvv;
+        }
+
+
+        /**
+         * Handles the validation and generation process on button click.
+         */
+        function handleGenerateClick() {
+            hideMessage();
+            
+            const bin = generatorBin.value.trim();
+            const count = parseInt(generatorCount.value, 10);
+            const mmInput = generatorExpMM.value.trim(); 
+            const yyInput = generatorExpYY.value.trim();
+            const cvvInput = generatorCVV.value.trim();
+            const outputFormat = outputFormatSelect.value;
+            
+            let validationError = '';
+            
+            // --- 1. Basic Mandatory Validation ---
+            if (!/^\d{1,15}$/.test(bin)) {
+                validationError = 'BIN must be 1 to 15 digits long and contain only numbers.';
+            } else if (count > 1000 || count < 1 || isNaN(count)) {
+                validationError = 'Quantity must be a number between 1 and 1000.';
+            }
+
+            if (validationError) {
+                showMessage(`GENERATOR ERROR: ${validationError}`, 'error');
+                copyButton.disabled = true;
+                return;
+            }
+            
+            // --- 2. Pre-Check User-Provided Optional Values ---
+            
+            const useFixedMM = mmInput !== '';
+            const useFixedYY = yyInput !== '';
+            const useFixedCVV = cvvInput !== '';
+
+            let finalMM = 'Random';
+            let finalYY = 'Random';
+            let finalCVV = 'Random';
+
+            // Validate fixed MM/YY/CVV *once* before the loop if provided
+            if (useFixedMM) {
+                 const mmInt = parseInt(mmInput, 10);
+                 if (!/^\d{1,2}$/.test(mmInput) || mmInt < 1 || mmInt > 12) {
+                    showMessage('GENERATOR ERROR: Expiry Month must be between 1 and 12.', 'error');
+                    copyButton.disabled = true;
+                    return;
+                 }
+                 finalMM = mmInput.padStart(2, '0');
+            }
+
+            if (useFixedYY) {
+                let tempYY = yyInput;
+                if (yyInput.length === 2) {
+                    tempYY = '20' + yyInput; 
+                }
+                const yyInt = parseInt(tempYY, 10);
+                const currentYear = new Date().getFullYear();
+
+                if (!/^\d{4}$/.test(tempYY) || yyInt < currentYear || yyInt > 2040) {
+                    showMessage('GENERATOR ERROR: Expiry Year is invalid or out of range (current year to 2040).', 'error');
+                    copyButton.disabled = true;
+                    return;
+                }
+                finalYY = tempYY;
+            }
+
+            if (useFixedCVV) {
+                 // The user can input 3 or 4 digits if they want to fix the CVV
+                 if (!/^\d{3,4}$/.test(cvvInput)) {
+                    showMessage('GENERATOR ERROR: CVV must be 3 or 4 digits long.', 'error');
+                    copyButton.disabled = true;
+                    return;
+                 }
+                 finalCVV = cvvInput;
+            }
+            
+            // --- 3. Main Generation Loop (Randomize per card if needed) ---
+
+            generatorOutput.value = ''; // Ensure output is clear
+            const generatedCards = [];
+            const generatedJSONObjects = [];
+            
+            for (let i = 0; i < count; i++) {
+                
+                let cardMM, cardYY, cardCVV;
+
+                // Randomize MM
+                cardMM = useFixedMM ? finalMM : randomMM().toString().padStart(2, '0');
+                
+                // Randomize YY
+                cardYY = useFixedYY ? finalYY : randomYY().toString(); 
+                
+                // Randomize CVV (STRICTLY 3 digits when randomizing)
+                cardCVV = useFixedCVV ? finalCVV : randomCVV();
+                
+                // Generate the card number
+                const ccNumber = generateSingleCC(bin);
+                
+                if (outputFormat === 'json') {
+                    generatedJSONObjects.push({
+                        cardNumber: ccNumber,
+                        expiryMonth: cardMM,
+                        expiryYear: cardYY,
+                        cvv: cardCVV
+                    });
+                } else { // csv/txt
+                    const fullLine = `${ccNumber}|${cardMM}|${cardYY}|${cardCVV}`;
+                    generatedCards.push(fullLine);
+                }
+            }
+        
+            if (outputFormat === 'json') {
+                // Use 2 spaces for readable JSON formatting
+                generatorOutput.value = JSON.stringify(generatedJSONObjects, null, 2);
+            } else {
+                generatorOutput.value = generatedCards.join('\n');
+            }
+            
+            // Construct success message using the determined values
+            const mmMsg = useFixedMM ? finalMM : 'Randomized per card';
+            const yyMsg = useFixedYY ? finalYY : 'Randomized per card';
+            const cvvMsg = useFixedCVV ? finalCVV : 'Randomized (3 digits)';
+
+            let formatMsg = outputFormat === 'json' ? ' (JSON Array)' : ' (CSV/TXT)';
+            showMessage(`SUCCESS: Generated ${count} Luhn-valid card line(s)${formatMsg}. Expiry: ${mmMsg}/${yyMsg}, CVV: ${cvvMsg}.`, 'success');
+            copyButton.disabled = false;
+        }
+
+        /**
+         * Copies the generated CC lines from the output textarea to the clipboard.
+         */
+        function copyGeneratedCCs() {
+            const textToCopy = generatorOutput.value;
+            if (textToCopy.length === 0) {
+                showMessage('COMMAND REJECTED: Nothing generated yet. Press the GENERATE button first.', 'info');
+                return;
+            }
+            
+            // Standard clipboard copy
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const totalCopied = outputFormatSelect.value === 'json' ? 'JSON' : textToCopy.split('\n').length + ' line(s)';
+                showMessage(`SUCCESS: Copied ${totalCopied} to clipboard.`, 'info');
+            }).catch(err => {
+                // Fallback for restricted environments (iframe)
+                try {
+                    const tempTextArea = document.createElement('textarea');
+                    tempTextArea.value = textToCopy;
+                    document.body.appendChild(tempTextArea);
+                    tempTextArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempTextArea);
+                    // Count lines based on format
+                    const totalCopied = outputFormatSelect.value === 'json' ? 'JSON' : textToCopy.split('\n').length + ' line(s)';
+                    showMessage(`SUCCESS: Copied ${totalCopied} using Fallback Protocol.`, 'info');
+                } catch (err) {
+                    showMessage('SYSTEM ERROR: Clipboard access denied. Try manually copying the output.', 'error');
+                }
+            });
+        }
+        
+        /**
+         * Updates the output format label text for the generator view.
+         */
+        function updateOutputFormatLabel() {
+            const format = outputFormatSelect.value;
+            if (format === 'json') {
+                 outputFormatLabel.textContent = 'Format: JSON Array (Keys: cardNumber, expiryMonth, expiryYear, cvv)';
+                 generatorOutput.placeholder = 'Generated JSON objects will appear here...';
+            } else {
+                 outputFormatLabel.textContent = 'Format: `Card Number|MM|YYYY|CVV` (CSV/TXT)';
+                 generatorOutput.placeholder = 'Generated CCs will appear here in CC|MM|YYYY|CVV format...';
+            }
+        }
+        
+        // --- NAVIGATION & INITIALIZATION ---
+
+        /**
+         * Switches the active view (Generator is the only one left).
+         * This function mainly serves to highlight the active button.
+         * @param {string} viewName - 'generator'
+         */
+        function showView(viewName) {
+            hideMessage(); // Hide message box on view switch
+            
+            // This is simple since only the generator view exists internally
+            
+            // 1. Update Navigation Buttons
+            navGenerator.classList.remove('bg-neon-cyan', 'text-text-dark');
+            navGenerator.classList.add('text-neon-gray/70', 'bg-card-dark/50', 'border-neon-dark-gray', 'hover:text-neon-cyan');
+            
+            // Checker is external, so its styling remains passive/link-like
+            navChecker.classList.remove('bg-neon-cyan', 'text-text-dark');
+            navChecker.classList.add('text-neon-gray/70', 'bg-card-dark/50', 'border-neon-dark-gray', 'hover:text-neon-cyan');
+            
+            // 2. Update View Content
+            generatorView.classList.add('hidden');
+            
+            if (viewName === 'generator') {
+                navGenerator.classList.add('bg-neon-cyan', 'text-text-dark');
+                navGenerator.classList.remove('text-neon-gray/70', 'bg-card-dark/50', 'border-neon-dark-gray', 'hover:text-neon-cyan');
+                generatorView.classList.remove('hidden');
+            }
+        }
+
+        // Initial setup
+        document.addEventListener('DOMContentLoaded', () => {
+             // Generator initial state
+             copyButton.disabled = true;
+             generatorExpMM.value = '';
+             generatorExpYY.value = '';
+             generatorCVV.value = '';
+             updateOutputFormatLabel();
+             
+             // Show Generator by default
+             showView('generator');
+        });
+
+        // Expose functions globally
+        window.handleGenerateClick = handleGenerateClick;
+        window.copyGeneratedCCs = copyGeneratedCCs;
+        window.updateOutputFormatLabel = updateOutputFormatLabel;
+        window.showView = showView;
+        
+    </script>
+</body>
+</html>
